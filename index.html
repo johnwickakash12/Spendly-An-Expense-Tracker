@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spendly — Smart Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="shell">
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon" ><img id="logo"src="images/logo.png" alt=""></div>
+        Spend<span>ly</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" onclick="setPage('dashboard')">
+          <span class="icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" onclick="setPage('transactions');scrollToBottom()">
+          <span class="icon">🔄</span> Transactions
+        </button>
+        <button class="nav-item" onclick="setPage('budget');document.getElementById('budget-panel').scrollIntoView({behavior:'smooth'})">
+          <span class="icon">🎯</span> Budget
+        </button>
+        <button class="nav-item" onclick="setPage('insights');document.getElementById('ai-panel').scrollIntoView({behavior:'smooth'})">
+          <span class="icon">✨</span> AI Insights
+        </button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="month-badge">
+          <div>Current Period</div>
+          <strong id="month-display">—</strong>
+          <span id="days-left">— days left</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="main">
+      <div class="topbar">
+        <h1 class="page-title" id="page-title">Your <span>Overview</span></h1>
+        <button class="add-btn" onclick="openModal()">
+          <span>＋</span> Add Transaction
+        </button>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Balance</div>
+          <div class="stat-value green" id="stat-balance">$0.00</div>
+          <div class="stat-sub">Updated just now</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value red" id="stat-expense">$0.00</div>
+          <div class="stat-sub" id="exp-sub">This month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Income</div>
+          <div class="stat-value purple" id="stat-income">$0.00</div>
+          <div class="stat-sub" id="inc-sub">This month</div>
+        </div>
+      </div>
+
+      <!-- CONTENT GRID -->
+      <div class="content-grid">
+        <!-- LEFT: Transactions + Chart -->
+        <div>
+          <!-- SPENDING CHART -->
+          <div class="panel" style="margin-bottom:20px;">
+            <div class="panel-title">
+              Weekly Spending
+              <span class="panel-action" onclick="cycleChartView()">Toggle View ↺</span>
+            </div>
+            <div class="chart-wrap" id="bar-chart"></div>
+            <div style="display:flex;justify-content:space-around" id="bar-labels"></div>
+          </div>
+
+          <!-- RECENT TRANSACTIONS -->
+          <div  id="transactions-panel" class="panel">
+            
+            <div class="panel-title">
+              Recent Transactions
+              <span class="panel-action" onclick="clearAll()">Clear All</span>
+            </div>
+            <div class="tx-list" id="tx-list">
+              <div class="empty">
+                <div class="e-icon">💳</div>
+                <p>No transactions yet. Add your first one!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Donut + Budget -->
+        <div>
+          <!-- CATEGORY BREAKDOWN -->
+          <div class="panel" style="margin-bottom:20px;">
+            <div class="panel-title">By Category</div>
+            <div class="donut-wrap">
+              <svg width="160" height="160" viewBox="0 0 160 160" id="donut-svg"></svg>
+              <div class="donut-center">
+                <div class="d-val" id="donut-total">$0</div>
+                <div class="d-label">spent</div>
+              </div>
+            </div>
+            <div class="cat-list" id="cat-list">
+              <div style="text-align:center;color:var(--muted);font-size:13px;padding:12px 0;">No data yet</div>
+            </div>
+          </div>
+
+          <!-- BUDGET PROGRESS -->
+          <div id="budget-panel" class="panel">
+            <div class="panel-title">Budget Health</div>
+            <div id="budget-meters"></div>
+            <div id="ai-panel" class="insight-card">
+              <div class="insight-top">✨ AI INSIGHT</div>
+              <div class="insight-text" id="ai-insight">Add some transactions to get personalized spending insights.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── MODAL ── -->
+  <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-title">New Transaction</div>
+      <div class="type-toggle">
+        <button class="type-btn active-expense" id="type-expense" onclick="setType('expense')">💸 Expense</button>
+        <button class="type-btn" id="type-income" onclick="setType('income')">💰 Income</button>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <input type="text" id="tx-desc" placeholder="e.g. Netflix, Groceries…" />
+      </div>
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="tx-amount" placeholder="0.00" min="0.01" step="0.01" />
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="tx-cat">
+          <option value="Food">🍔 Food &amp; Dining</option>
+          <option value="Transport">🚗 Transport</option>
+          <option value="Shopping">🛍 Shopping</option>
+          <option value="Bills">⚡ Bills &amp; Utilities</option>
+          <option value="Entertainment">🎬 Entertainment</option>
+          <option value="Health">💊 Health &amp; Fitness</option>
+          <option value="Travel">✈️ Travel</option>
+          <option value="Other">📦 Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="tx-date" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveTransaction()">Save Transaction</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOAST ── -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+<footer class="footer">
+  © 2026 Copyright — Made by Akash Koirala
+</footer>
+<link rel="icon" href="favicon.ico">
+</html>
